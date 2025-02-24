@@ -1,0 +1,45 @@
+# Source files
+SOURCES = main.cc fir.cc tb.cc
+OBJECTS = $(SOURCES:.cc=.o)
+HEADERS = fir.h tb.h
+
+# Libraries
+LIBS = -lsystemc -lstdc++ -lm
+CXXFLAGS = -g -fPIC -Wall -Wextra
+LDFLAGS = -L/usr/lib/systemc $(LIBS)  # Ensure correct SystemC library path
+
+# Compiler
+GCC = g++
+
+# Output executable
+TESTS = main
+
+# Default target
+all: $(TESTS)
+	./$(TESTS)
+	@make cmp_result
+
+# Compile source files into object files
+%.o: %.cc
+	$(GCC) $(CXXFLAGS) -c -o $@ $<
+
+# Link object files into final executable
+$(TESTS): $(OBJECTS)
+	$(GCC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+# Clean build files
+clean:
+	rm -f $(TESTS) *.o *.dat
+
+# Compare results with golden reference
+GOLD_DIR = ./golden
+GOLD_FILE = $(GOLD_DIR)/ref_output.dat
+
+cmp_result:
+	@echo "****************************************************************"
+	@if diff -w $(GOLD_FILE) ./output.dat; then \
+		echo "SIMULATION PASSED"; \
+	else \
+		echo "SIMULATION FAILED"; \
+	fi
+	@echo "****************************************************************"

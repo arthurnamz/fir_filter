@@ -1,0 +1,46 @@
+SYSTEMC_ARCH=linux64
+
+#SYSTEMC_ARCH=linux
+LIB_DIRS = $(SYSTEMC)/lib-$(SYSTEMC_ARCH)
+
+#include directories
+INCLUDE_DIRS = -I. -I$SYSTEMC/include
+
+
+#header files used, for dependecy checking
+HEADERS = fir.h tb.h
+
+#source files used, for dependecy checking
+SOURCES = fir.cc tb.cc main.cc
+
+
+DEPENDENCIES = \
+        Makefile \
+        $(HEADERS) \
+        $(SOURCES)
+        
+LIBS= -lsystemc -lstdc++ -lm 
+
+TESTS= main
+
+all: $(TESTS) \
+		./$(TESTS) \
+        @make cmp_result
+
+$(TESTS): $(DEPENDENCIES)
+		gcc -g -o $@ $@.cc $(SOURCES) $(INCLUDE_DIRS) -L $(LIB_DIRS) $(LIBS)
+
+clean:	rm -f $(TESTs) *.o *.dat
+
+# The cmp_result target compares the simulation results with the golden results. The testbench writes out the results file (output.dat) in the simulation configuration directory. The cmp_result arget is automatically run at the end of each simulation
+GOLD_DIR = ./golden
+GOLD_FILE = $(GOLDEN_FILE) ./ref_output.dat
+
+cmp_result:
+		@each "****************************************************************"
+		@if diff -w $(GOLD_DIR)/ref_output.dat ./output.dat; then \
+			echo "SIMULATION PASSED"; \
+		else \
+			echo "SIMULATION FAILED"; \
+		fi
+		@echo "****************************************************************"

@@ -1,0 +1,45 @@
+# Source files
+SOURCES = fir.cc tb.cc
+OBJECTS = fir.o tb.o
+HEADERS = fir.h tb.h
+
+# Libraries
+LIBS = -lsystemc -lstdc++ -lm
+CXXFLAGS = -g -fPIC -Wall -Wextra
+LDFLAGS = -L$(LIB_DIRS) $(LIBS)
+
+# Compiler
+GCC = g++
+
+# Output executable
+TESTS = main
+
+# Default target
+all: $(TESTS)
+	./$(TESTS)
+	@make cmp_result
+
+# Compile object files
+%.o: %.cc $(HEADERS)
+	$(GCC) $(CXXFLAGS) -c -o $@ $<
+
+# Link object files to create the executable
+$(TESTS): $(OBJECTS) main.o
+	$(GCC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+# Clean build files
+clean:
+	rm -f $(TESTS) *.o *.dat
+
+# Compare results with golden reference
+GOLD_DIR = ./golden
+GOLD_FILE = $(GOLD_DIR)/ref_output.dat
+
+cmp_result:
+	@echo "****************************************************************"
+	@if diff -w $(GOLD_FILE) ./output.dat; then \
+		echo "SIMULATION PASSED"; \
+	else \
+		echo "SIMULATION FAILED"; \
+	fi
+	@echo "****************************************************************"

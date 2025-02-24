@@ -1,0 +1,38 @@
+SOURCES = fir.cc tb.cc
+OBJECTS = $(SOURCES:.cc=.o)
+EXECUTABLE = main
+
+LIBS = -lsystemc -lstdc++ -lm
+CXXFLAGS = -g -Wall -fPIC   # Added -Wall for warnings, -fPIC to fix PIE error
+LDFLAGS = -L$(LIB_DIRS) $(LIBS)
+
+# Define the compiler
+CXX = g++
+
+all: $(EXECUTABLE)
+	./$(EXECUTABLE)
+	@make cmp_result
+
+# Compile source files to object files
+%.o: %.cc
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Link object files into executable
+$(EXECUTABLE): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $(EXECUTABLE) $(OBJECTS) $(LDFLAGS)
+
+clean:
+	rm -f $(EXECUTABLE) *.o *.dat
+
+# Compare output with golden reference
+GOLD_DIR = ./golden
+GOLD_FILE = $(GOLD_DIR)/ref_output.dat
+
+cmp_result:
+	@echo "****************************************************************"
+	@if diff -w $(GOLD_FILE) ./output.dat; then \
+		echo "SIMULATION PASSED"; \
+	else \
+		echo "SIMULATION FAILED"; \
+	fi
+	@echo "****************************************************************"

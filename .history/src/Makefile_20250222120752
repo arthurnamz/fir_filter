@@ -1,0 +1,50 @@
+# SystemC Paths (Now in /usr/lib and /usr/include)
+SYSTEMC ?= /usr
+
+# Library and Include Directories
+LIB_DIRS = -L$(SYSTEMC)/lib
+INCLUDE_DIRS = -I$(SYSTEMC)/include/systemc
+
+# Libraries
+LIBS = -lsystemc -lstdc++ -lm
+
+# Compiler
+CXX = g++
+CXXFLAGS = -g -Wall -Wextra -fPIC
+
+# Source files
+SOURCES = fir.cc tb.cc main.cc
+OBJECTS = fir.o tb.o main.o
+
+# Executable
+TESTS = main
+
+# Default target
+all: $(TESTS)
+	./$(TESTS)
+
+# Compile source files into object files
+%.o: %.cc
+	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE_DIRS)
+
+# Link object files to create the final executable
+$(TESTS): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIB_DIRS) $(LIBS)
+
+# Clean up generated files
+clean:
+	rm -f $(TESTS) *.o *.dat
+
+
+# The cmp_result target compares the simulation results with the golden results. The testbench writes out the results file (output.dat) in the simulation configuration directory. The cmp_result arget is automatically run at the end of each simulation
+GOLD_DIR = ./golden
+GOLD_FILE = $(GOLDEN_FILE) ./ref_output.dat
+
+cmp_result:
+		@each "****************************************************************"
+		@if diff -w $(GOLD_DIR)/ref_output.dat ./output.dat; then \
+			echo "SIMULATION PASSED"; \
+		else \
+			echo "SIMULATION FAILED"; \
+		fi
+		@echo "****************************************************************"
